@@ -32,7 +32,7 @@ contract HouseNFT is ERC1155 {
     }
 
     function convertIntoByte(string memory _a)
-        public
+        private
         pure
         returns (bytes memory)
     {
