@@ -36,8 +36,8 @@ interface HouseNFTInterface {
 }
 
 contract RentingContract {
-    address public owner;
-    mapping(uint256 => rent) public listOfRenting;
+    address public owner; // owner of the contract
+    mapping(uint256 => rent) public listOfRenting; // list of renting property
     uint256 public rentingID = 0;
     address nftContractAddress;
 
@@ -49,7 +49,6 @@ contract RentingContract {
     enum statusOfRent {
         pending,
         cancel,
-        active,
         complete
     }
     struct rent {
@@ -58,10 +57,6 @@ contract RentingContract {
         uint256 price;
         uint256 propertyID;
         statusOfRent status;
-    }
-
-    function viewAl(uint256 _id) public view returns (address[] memory) {
-        return listOfRenting[_id].OwnerAdress;
     }
 
     function rentNewProperty(uint256 _id) public payable {
@@ -120,7 +115,7 @@ contract RentingContract {
             ),
             "Not the property owner"
         );
-
+        listOfRenting[_rentingId].status = statusOfRent.complete;
         uint256 _propertyId = listOfRenting[_rentingId].propertyID;
         address[] memory allOwner = HouseNFTInterface(nftContractAddress)
             .viewOwnerList(_propertyId);
@@ -135,15 +130,21 @@ contract RentingContract {
         }
     }
 
-    function contractBalance() public view returns (uint256) {
-        return address(this).balance;
+    function cancelRent(uint256 _rentingId) public {
+        require(
+            checkTheValidOwner(
+                listOfRenting[_rentingId].OwnerAdress,
+                address(msg.sender)
+            ),
+            "Not the property owner"
+        );
+        listOfRenting[_rentingId].status = statusOfRent.cancel;
+        payable(listOfRenting[_rentingId].renterAdress).transfer(
+            listOfRenting[_rentingId].price
+        );
     }
 
-    function getBlance(uint256 id) public view returns (uint256) {
-        uint256 percent = HouseNFTInterface(nftContractAddress).balanceOf(
-            msg.sender,
-            id
-        );
-        return percent;
+    function contractBalance() public view returns (uint256) {
+        return address(this).balance;
     }
 }
